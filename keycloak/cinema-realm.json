@@ -1,0 +1,77 @@
+{
+  "realm": "cinema",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "roles": {
+    "realm": [
+      { "name": "viewer", "description": "Зритель" },
+      { "name": "staff", "description": "Сотрудник кинотеатра" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "cinema-client",
+      "name": "Cinema Booking — учебный клиент",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "cinema-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "cinema-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "other-client",
+      "name": "Клиент без доступа к API (для проверки aud)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect"
+    }
+  ],
+  "users": [
+    {
+      "username": "viewer1",
+      "enabled": true,
+      "email": "viewer1@cinema.local",
+      "emailVerified": true,
+      "firstName": "Зритель",
+      "lastName": "Первый",
+      "credentials": [{ "type": "password", "value": "viewer1", "temporary": false }],
+      "realmRoles": ["viewer"]
+    },
+    {
+      "username": "viewer2",
+      "enabled": true,
+      "email": "viewer2@cinema.local",
+      "emailVerified": true,
+      "firstName": "Зритель",
+      "lastName": "Второй",
+      "credentials": [{ "type": "password", "value": "viewer2", "temporary": false }],
+      "realmRoles": ["viewer"]
+    },
+    {
+      "username": "staff1",
+      "enabled": true,
+      "email": "staff1@cinema.local",
+      "emailVerified": true,
+      "firstName": "Сотрудник",
+      "lastName": "Первый",
+      "credentials": [{ "type": "password", "value": "staff1", "temporary": false }],
+      "realmRoles": ["staff"]
+    }
+  ]
+}
