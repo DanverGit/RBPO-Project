@@ -1,0 +1,71 @@
+# Локальное окружение для разработки. Пароли — только для учебного стенда.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: cinema
+      POSTGRES_USER: cinema
+      POSTGRES_PASSWORD: cinema
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cinema -d cinema"]
+      interval: 3s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      # Токены выдаются по внешнему адресу (издатель http://localhost:8080/...),
+      # а API получает ключи по внутреннему адресу keycloak:8080.
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/cinema-realm.json:/opt/keycloak/data/import/cinema-realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 5s
+      retries: 40
+
+  api:
+    build: .
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=db;Port=5432;Database=cinema;Username=cinema;Password=cinema
+      Auth__Authority: http://keycloak:8080/realms/cinema
+      Auth__ValidIssuer: http://localhost:8080/realms/cinema
+      Auth__Audience: cinema-api
+      Auth__RequireHttpsMetadata: "false"
+    ports:
+      - "5080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+
+  # Интеграционные тесты без локального .NET SDK: docker compose --profile test run --rm tests
+  tests:
+    profiles: ["test"]
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /repo
+    volumes:
+      - .:/repo
+      - nuget-cache:/root/.nuget/packages
+    environment:
+      TEST_DB_CONNECTION: Host=db;Port=5432;Database=postgres;Username=cinema;Password=cinema
+    # Сборка в /tmp, чтобы не смешивать bin/obj контейнера и хоста.
+    command: ["dotnet", "test", "--artifacts-path", "/tmp/artifacts"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  nuget-cache:
