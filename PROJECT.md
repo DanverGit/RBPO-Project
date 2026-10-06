@@ -12,6 +12,7 @@
 - [Требования безопасности](docs/security-requirements.md)
 - [Модель угроз](docs/threat-model.md)
 - [Проектные решения безопасности](docs/design-decisions.md)
+- [Вклад участников](CONTRIBUTIONS.md)
 - [Использование генеративного ИИ](AI_USAGE.md)
 
 ## 1. Назначение
