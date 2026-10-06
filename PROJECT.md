@@ -9,8 +9,8 @@
 
 ## Документы проекта
 
-- [Требования безопасности](security-requirements.md)
-- [Модель угроз](threat-model.md)
+- [Требования безопасности](docs/security-requirements.md)
+- [Модель угроз](docs/threat-model.md)
 - [Использование генеративного ИИ](AI_USAGE.md)
 
 ## 1. Назначение
